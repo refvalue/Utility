@@ -113,4 +113,4 @@ namespace glasssix
 	}
 }
 
-#define GET_C_FUNCTION_PTR(func) (decltype(glasssix::function_adapter{ std::integral_constant<std::size_t, __COUNTER__>{}, (func) })::c_func)
+#define GET_C_FUNCTION_PTR(func) (glasssix::function_adapter{ std::integral_constant<std::size_t, __COUNTER__>{}, (func) }.c_func)
