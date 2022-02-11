@@ -87,27 +87,30 @@ namespace glasssix
 		static constexpr std::size_t arg_count = std_function_traits<std_func_type>::arg_count;
 	};
 
-	template<std::size_t I, typename Function>
-	struct function_adapter
+	namespace
 	{
-		using std_func_type = make_std_function_t<Function>;
-		using std_func_traits = std_function_traits<std_func_type>;
-
-		inline static std_func_type std_func;
-		static constexpr auto c_func = []<std::size_t... Is>(std::index_sequence<Is...>)
+		template<std::size_t I, typename Function>
+		struct function_adapter
 		{
-			return[](typename std_func_traits::template arg_type<Is>... args) { return std_func(args...); };
-		}(std::make_index_sequence<std_func_traits::arg_count>{});
+			using std_func_type = make_std_function_t<Function>;
+			using std_func_traits = std_function_traits<std_func_type>;
 
-		template<typename SameFunction>
-		constexpr function_adapter(std::integral_constant<std::size_t, I>, SameFunction&& func) noexcept
-		{
-			std_func = std::forward<SameFunction>(func);
-		}
-	};
+			inline static std_func_type std_func;
+			static constexpr auto c_func = []<std::size_t... Is>(std::index_sequence<Is...>)
+			{
+				return[](typename std_func_traits::template arg_type<Is>... args) { return std_func(args...); };
+			}(std::make_index_sequence<std_func_traits::arg_count>{});
 
-	template<std::size_t I, typename Function>
-	function_adapter(std::integral_constant<std::size_t, I>, Function&&)->function_adapter<I, Function>;
+			template<typename SameFunction>
+			constexpr function_adapter(std::integral_constant<std::size_t, I>, SameFunction&& func) noexcept
+			{
+				std_func = std::forward<SameFunction>(func);
+			}
+		};
+
+		template<std::size_t I, typename Function>
+		function_adapter(std::integral_constant<std::size_t, I>, Function&&)->function_adapter<I, Function>;
+	}
+}
 
 #define GET_C_FUNCTION_PTR(func) (decltype(glasssix::function_adapter{ std::integral_constant<std::size_t, __COUNTER__>{}, (func) })::c_func)
-}
